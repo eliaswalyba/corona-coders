@@ -3,7 +3,7 @@ sites = [
     "https://emedia.sn/", 
     "https://covidsn.com/", 
     "https://xarala.tech/"
-] * 15
+] * 100
 
 import multiprocessing
 import time
