@@ -1,42 +1,43 @@
-import numpy as np
-
 class NeuralNetwork:
 
-    def __init__(self, n_input, n_hidden, n_output, activation, lr):
-        self.n_input, self.n_hidden, self.n_output = n_input, n_hidden, n_output
-        self.activation = {
-            'f': np.vectorize(activation.get('f')),
-            'df': np.vectorize(activation.get('df'))
-        }
-        self.lr = lr
-        self.weights = {
-            'i -> h': np.random.rand(self.n_hidden, self.n_input),
-            'h -> o': np.random.rand(self.n_output, self.hidden)
-        }
-        self.biases = {
-            'h': np.random.rand(self.n_hidden, 1),
-            'o': np.random.rand(self.n_output, 1)
-        }
+    def __init__(self):
+        self.layers = []
+        self.loss_fn = None
+        self.loss_dfn = None
 
-    def train(self, x, y):
-        X = np.array(x).reshape(-1, 1)
-        Y = np.array(y).reshape(-1, 1)
+    def add(self, layer):
+        self.layers.append(layer)
 
-        # feed forward
-        H = self.activation.get('f')((self.weights.get('i -> h') * X + self.biases.get('h')))
-        O = self.activation.get('f')((self.weights.get('h -> o') * H + self.biases.get('o')))
+    def use(self, loss_fn, loss_dfn):
+        self.loss_fn = loss_fn
+        self.loss_dfn = loss_dfn
+    
+    def predict(self, input_data):
+        sample = len(input_data)
+        result = []
 
-        # Back propagation
-        OE = O - Y # a modifier
+        for i in range(sample):
+            output = input_data[i]
+            for layer in self.layers:
+                output = layer.forward(output)
+            result.append(output)
+        
+        return result
 
-        OG = self.activation.get('df')((O)) * OE * self.lr
-        self.weights['h -> o'] += OG * H.T
-        self.biases['o'] += OG
+    def fit(self, x_train, y_train, epochs, learning_rate):
+        samples = len(x_train)
 
-        HE = self.weights.get('h -> o').T * OE
-        HG = self.activation.get('df')((H)) * HE * self.lr
-        self.weights['i -> h'] += HG * X.T
-        self.biases['h'] += HG
+        for i in range(epochs):
+            err = 0
+            for j in range(samples):
+                output = x_train[j]
+                for layer in self.layers:
+                    output = layer.forward(output)
+                err += self.loss_fn(y_train[j], output)
 
-    def predict(self):
-        pass
+                error = self.loss_dfn(y_train[j], output)
+                for layer in reversed(self.layers):
+                    error = layer.backward(error, learning_rate)
+
+            err /= samples
+            print('epoch %d/%d   error=%f' % (i+1, epochs, err))
