@@ -25,7 +25,7 @@ model.add(ActivationLayer(sigmoid, d_sigmoid))
 
 model.use(mse, d_mse)
 
-model.fit(x_train, y_train, epochs=1000, learning_rate=0.1)
+model.fit(x_train, y_train, epochs=1000, learning_rate=2)
 
 y_hat = model.predict(x_train)
 print(y_hat)
